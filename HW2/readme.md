@@ -1,17 +1,19 @@
 докер установлен в убунте.
 
+```
 root@tpt480:/home/serge# docker -v
 Docker version 24.0.7, build 24.0.7-0ubuntu4
 root@tpt480:/home/serge# uname -a
 Linux tpt480 6.8.0-36-generic #36-Ubuntu SMP PREEMPT_DYNAMIC Mon Jun 10 10:49:14 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
-
+```
 создаем отдельную сеть pg-net для экспериментов 
-
+```
 root@tpt480:/home/serge# docker network create pg-net
 1f65d9b9898c706ded3dad81759f017351e4324f3b4642f79bb917dc5e661790
-
+```
 
 создаем отдельный каталог для данных
+```
 root@tpt480:/home/serge# mkdir /opt/postgres
 
 запускаем постгрес с "пробросом" каталога
@@ -25,18 +27,21 @@ Digest: sha256:14bfab572eec6abf65892e1db7c3ba8d41b2a2855c1b143664907d6e146eb6e1
 Status: Downloaded newer image for postgres:14
 a616a13cc29b071849e0f317ba339e16349b607f65b864970270920c2c38398f
 docker: Error response from daemon: driver failed programming external connectivity on endpoint pg-server (f8494334c0e5e186134e0b8777e1c68dbcc91a5b60fc7cc622ecee6c3d1775ac): Error starting userland proxy: listen tcp4 0.0.0.0:5432: bind: address already in use.
-
+```
 ошибка изза занятого порта по умолчанию
 
+```
 root@tpt480:/home/serge# docker run -d --name pg-server --network pg-net -e POSTGRES_PASSWORD=otus_pass  -p 5433:5432   -v /opt/postgres:/var/lib/postgresql/data postgres:14
 
 повторная попытка, ошибка с ссуществующим именем, удаляем хвосты предыдущих попыток запуска.
 
 docker: Error response from daemon: Conflict. The container name "/pg-server" is already in use by container "a616a13cc29b071849e0f317ba339e16349b607f65b864970270920c2c38398f". You have to remove (or rename) that container to be able to reuse that name.
 See 'docker run --help'.
+```
 
 проверка занятых портов
 
+```
 root@tpt480:/home/serge# ss -ltpn
 State   Recv-Q  Send-Q    Local Address:Port      Peer Address:Port  Process                                                      
 LISTEN  0       4096            0.0.0.0:8080           0.0.0.0:*      users:(("docker-proxy",pid=4361,fd=4))                      
@@ -72,9 +77,11 @@ root@tpt480:/home/serge# docker remove a616a13cc29b071849e0f317ba339e16349b607f6
 a616a13cc29b071849e0f317ba339e16349b607f65b864970270920c2c38398f
 root@tpt480:/home/serge# docker run -d --name pg-server --network pg-net -e POSTGRES_PASSWORD=otus_pass  -p 6000:5432   -v /opt/postgres:/var/lib/postgresql/data postgres:14
 23b7d6955da1d9988154a54e47f4e4ae3f9fc4a64d7b1e8952ba67abc770cda4
+```
 
 успешный запуск, проверка
 
+```
 root@tpt480:/home/serge# docker ps
 CONTAINER ID   IMAGE                    COMMAND                  CREATED         STATUS         PORTS                                       NAMES
 23b7d6955da1   postgres:14              "docker-entrypoint.s…"   7 seconds ago   Up 7 seconds   0.0.0.0:6000->5432/tcp, :::6000->5432/tcp   pg-server
@@ -93,10 +100,11 @@ root@tpt480:/home/serge# docker run --rm -it  --name pg-client --network pg-net 
 (1 row)
 
 You are connected to database "postgres" as user "postgres" on host "pg-server" (address "172.18.0.2") at port "5432".
-
+```
 используем штатный psql из контейнера, коннект есть ПГ живой.
 
 Подключаемся к нему, вставляем исходные данные
+```
 root@tpt480:/home/serge# docker run --rm -it  --name pg-client --network pg-net -e PGPASSWORD=otus_pass postgres:14 psql -h pg-server -U postgres 
 psql (14.24 (Debian 14.24-1.pgdg13+2))
 Type "help" for help.
@@ -128,25 +136,27 @@ INSERT 0 1
 INSERT 0 1
 INSERT 0 1
 postgres=# \q
-
+```
 останавливаем контейнер, удаляем. Проверяем нет ли хвостов от него.
+```
 root@tpt480:/home/serge# docker stop 23b7d6955da1
 23b7d6955da1
 root@tpt480:/home/serge# docker remove 23b7d6955da1
 23b7d6955da1
 root@tpt480:/home/serge# docker ps -a | grep 23b7d6955da1
-
+```
 
 Данные  в отдельной директории на месте.
+```
 root@tpt480:/home/serge# du -sm /opt/postgres/
 42	/opt/postgres/
 
 запускаем ПГ с "прежним" пробросом
 root@tpt480:/home/serge# docker run -d --name pg-server --network pg-net -e POSTGRES_PASSWORD=otus_pass  -p 6000:5432   -v /opt/postgres:/var/lib/postgresql/data postgres:14
 791159f3c26d7ef6538839eebcf0486b3c5f56be59bfaddd8ecbf89fa764edb2
-
+```
 подключаемся к нему клиентом в интерактивном режиме.
-
+```
 oot@tpt480:/home/serge# docker run --rm -it  --name pg-client --network pg-net -e PGPASSWORD=otus_pass postgres:14 psql -h pg-server -U postgres 
 psql (14.24 (Debian 14.24-1.pgdg13+2))
 Type "help" for help.
@@ -155,9 +165,9 @@ postgres=# \c
 You are now connected to database "postgres" as user "postgres".
 postgres=# \conninfo
 You are connected to database "postgres" as user "postgres" on host "pg-server" (address "172.18.0.2") at port "5432".
-
+```
 делаем выборку из таблицы. Данные на месте
-
+```
 postgres=# select * from shipments;
  id | product_name | quantity | destination 
 ----+--------------+----------+-------------
@@ -174,9 +184,9 @@ postgres=# select * from shipments;
 (10 rows)
 
 postgres=# 
-
+```
 выходим и подключаемся нативным клиентом с ноутбука
-
+```
 root@tpt480:/home/serge# psql -h localhost -U postgres  -p 6000
 Password for user postgres: 
 psql (16.9 (Ubuntu 16.9-0ubuntu0.24.04.1), server 14.24 (Debian 14.24-1.pgdg13+2))
@@ -199,5 +209,5 @@ postgres=# select * from shipments;
 
 postgres=# \conninfo
 You are connected to database "postgres" as user "postgres" on host "localhost" (address "127.0.0.1") at port "6000".
-
+```
 Данные на месте
