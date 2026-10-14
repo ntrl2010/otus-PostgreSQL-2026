@@ -1,14 +1,4 @@
-Повторите шаги Алексея:
-
-Создайте виртуальную машину с Ubuntu 20.04 и установите PostgreSQL 15 или выше.
-Создайте таблицу с данными о перевозках.
-Добавьте внешний диск к виртуальной машине и перенесите туда базу данных.
-Настройте PostgreSQL для работы с новым диском.
-Проверьте, что данные сохранились и доступны.
-
-
-1.
-В большой фирме, занимающейся трансатлантическими перевозками,  БД будем выносить на внешний трердотельный носитель, но приступим. Яндекс облако сейчас не доступно, будем делать на простом ноутбуке с докером и убунтой.
+ Яндекс облако сейчас не доступно, будем делать на простом ноутбуке с докером и убунтой.
 
 готовим внешнее хранилище
 ```
@@ -88,7 +78,6 @@ Type "help" for help.
 postgres=# \conninfo
 You are connected to database "postgres" as user "postgres" on host "localhost" (address "127.0.0.1") at port "6001".
 
-```
 postgres=# create table shipments(id serial, product_name text, quantity int, destination text);
 CREATE TABLE
 postgres=# insert into shipments(product_name, quantity, destination) values('bananas', 1000, 'Europe');
